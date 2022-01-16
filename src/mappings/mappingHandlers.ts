@@ -6,6 +6,8 @@ import { inputToFunctionSighash, isZero, wrapExtrinsics } from "../utils";
 const MAIN_REWARDS_ADDRESS = '0x3f5757af3a9fcd2aa09856bbcc9038856af6f8bf';
 const DISTRIBUTION_ADDRESS = '0x51d16189a7cd896f6e4a8b264887d0f6f4d2b0eb';
 
+const MOONBEAM_CROWDLOAN_ID = '2004-12KHAurRWMFJyxU57S9pQerHsKLCwvWKM1d3dKZVx7gSfkFJ-1';
+
 let specVersion: SpecVersion;
 export async function handleBlock(block: SubstrateBlock): Promise<void> {
     if (!specVersion) {
@@ -27,12 +29,32 @@ export async function handleEvmTransaction(idx: string, tx: MoonbeamCall): Promi
     if (!tx.hash || !tx.success) {
         return;
     }
+    const func = isZero(tx.data) ? undefined : inputToFunctionSighash(tx.data);
+    // Collect vesting transaction
+    if (tx.from === DISTRIBUTION_ADDRESS) {
+        const evmTransaction = EvmTransaction.create({
+            id: idx,
+            crowdloanId: MOONBEAM_CROWDLOAN_ID,
+            txHash: tx.hash,
+            from: tx.from,
+            to: tx.to,
+            value: tx.value.toString(),
+            func,
+            blockHeight: tx.blockNumber,
+            success: tx.success,
+        });
+        logger.info(`vest transaction: ${JSON.stringify(evmTransaction)}`);
+        await evmTransaction.save();
+        return
+    }        
+
+    // Collect the claim transaction
     if (tx.from != MAIN_REWARDS_ADDRESS || tx.to != DISTRIBUTION_ADDRESS) {
         return;
     }
-    const func = isZero(tx.data) ? undefined : inputToFunctionSighash(tx.data);
     const evmTransaction = EvmTransaction.create({
         id: idx,
+        crowdloanId: MOONBEAM_CROWDLOAN_ID,
         txHash: tx.hash,
         from: tx.from,
         to: tx.to,
@@ -41,8 +63,7 @@ export async function handleEvmTransaction(idx: string, tx: MoonbeamCall): Promi
         blockHeight: tx.blockNumber,
         success: tx.success,
     });
-    logger.info(`evmTransaction: ${JSON.stringify(evmTransaction)}`);
-
+    logger.info(`claim transaction: ${JSON.stringify(evmTransaction)}`);
     let totalClaimed = await TotalClaimed.get(DISTRIBUTION_ADDRESS);
     if (totalClaimed) {
         totalClaimed.blockHeight = tx.blockNumber;
