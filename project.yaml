@@ -1,8 +1,8 @@
 specVersion: 0.2.0
-name: moonbeam-total-claimed-subql
+name: moonbeam-distribution-subql
 version: 0.1.0
 description: subquery diction for moonbase-alpha and ...
-repository: https://github.com/parallel-finance/moonbeam-total-claimed-subql
+repository: https://github.com/parallel-finance/moonbeam-distribution-subql
 schema:
   file: ./schema.graphql
 network:
@@ -12,7 +12,7 @@ network:
     file: ./dist/chaintypes.js
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 1
+    startBlock: 1526695
     mapping:
       file: ./dist/index.js
       handlers:
