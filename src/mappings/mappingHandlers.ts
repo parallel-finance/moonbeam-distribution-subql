@@ -1,5 +1,5 @@
 import { SubstrateBlock } from "@subql/types";
-import { SpecVersion, EvmTransaction, TotalClaimed } from "../types";
+import { SpecVersion, ClaimedTransaction, DistributedTransaction, TotalClaimed } from "../types";
 import MoonbeamDatasourcePlugin, { MoonbeamCall } from "@subql/contract-processors/dist/moonbeam";
 import { inputToFunctionSighash, isZero, wrapExtrinsics } from "../utils";
 
@@ -30,9 +30,9 @@ export async function handleEvmTransaction(idx: string, tx: MoonbeamCall): Promi
         return;
     }
     const func = isZero(tx.data) ? undefined : inputToFunctionSighash(tx.data);
-    // Collect vesting transaction
+    // Collect distribute transaction
     if (tx.from === DISTRIBUTION_ADDRESS) {
-        const evmTransaction = EvmTransaction.create({
+        const disTransaction = DistributedTransaction.create({
             id: idx,
             crowdloanId: MOONBEAM_CROWDLOAN_ID,
             txHash: tx.hash,
@@ -43,8 +43,8 @@ export async function handleEvmTransaction(idx: string, tx: MoonbeamCall): Promi
             blockHeight: tx.blockNumber,
             success: tx.success,
         });
-        logger.info(`vest transaction: ${JSON.stringify(evmTransaction)}`);
-        await evmTransaction.save();
+        logger.info(`vest transaction: ${JSON.stringify(disTransaction)}`);
+        await disTransaction.save();
         return
     }        
 
@@ -52,7 +52,7 @@ export async function handleEvmTransaction(idx: string, tx: MoonbeamCall): Promi
     if (tx.from != MAIN_REWARDS_ADDRESS || tx.to != DISTRIBUTION_ADDRESS) {
         return;
     }
-    const evmTransaction = EvmTransaction.create({
+    const claimedTransaction = ClaimedTransaction.create({
         id: idx,
         crowdloanId: MOONBEAM_CROWDLOAN_ID,
         txHash: tx.hash,
@@ -63,7 +63,7 @@ export async function handleEvmTransaction(idx: string, tx: MoonbeamCall): Promi
         blockHeight: tx.blockNumber,
         success: tx.success,
     });
-    logger.info(`claim transaction: ${JSON.stringify(evmTransaction)}`);
+    logger.info(`claim transaction: ${JSON.stringify(claimedTransaction)}`);
     let totalClaimed = await TotalClaimed.get(DISTRIBUTION_ADDRESS);
     if (totalClaimed) {
         totalClaimed.blockHeight = tx.blockNumber;
@@ -78,7 +78,7 @@ export async function handleEvmTransaction(idx: string, tx: MoonbeamCall): Promi
     logger.info(`totalClaimed: ${JSON.stringify(totalClaimed)}`);
 
     await Promise.all([
-        evmTransaction.save(),
+        claimedTransaction.save(),
         totalClaimed.save(),
     ]);
 }

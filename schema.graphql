@@ -1,38 +1,34 @@
 type SpecVersion @entity {
-
   id: ID! #specVersion
-
   blockHeight: BigInt!
-
 }
 
-type EvmTransaction @entity {
-
+type DistributedTransaction @entity {
   id: ID!
-
   crowdloanId: String!
-
   txHash: String! @index
-
   from: String! @index
-
   to: String! @index
-
   value: String!
-
   func: String @index
-
   blockHeight: Int! 
-
   success: Boolean!
+}
 
+type ClaimedTransaction @entity {
+  id: ID!
+  crowdloanId: String!
+  txHash: String! @index
+  from: String! @index
+  to: String! @index
+  value: String!
+  func: String @index
+  blockHeight: Int! 
+  success: Boolean!
 }
 
 type TotalClaimed @entity {
-
   id: ID!
-
   blockHeight: Int!
-
   amount: String!
 }
