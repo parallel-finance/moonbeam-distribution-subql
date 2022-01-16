@@ -7,12 +7,12 @@ schema:
   file: ./schema.graphql
 network:
   genesisHash: ''
-  endpoint: wss://moonbeam-alpha.api.onfinality.io/public-ws
+  endpoint: wss://moonbeam.api.onfinality.io/public-ws
   chaintypes:
     file: ./dist/chaintypes.js
 dataSources:
   - kind: substrate/Runtime
-    startBlock: 1529744
+    startBlock: 208196
     mapping:
       file: ./dist/index.js
       handlers:
