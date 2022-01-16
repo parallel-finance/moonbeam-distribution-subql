@@ -3,10 +3,12 @@ import { SpecVersion, ClaimedTransaction, DistributedTransaction, TotalClaimed }
 import MoonbeamDatasourcePlugin, { MoonbeamCall } from "@subql/contract-processors/dist/moonbeam";
 import { inputToFunctionSighash, isZero, wrapExtrinsics } from "../utils";
 
-const MAIN_REWARDS_ADDRESS = '0x3f5757af3a9fcd2aa09856bbcc9038856af6f8bf';
-const DISTRIBUTION_ADDRESS = '0xe26791213768468b11940aa1e924b615fa486c45';
+const MAIN_REWARDS_ADDRESS = '0x508eb96dc541c8e88a8a3fce4618b5fb9fa3f209';
+const DISTRIBUTION_ADDRESS = '0x1f695652967615cde319fdf59dd65b22c380edc1';
 
 const MOONBEAM_CROWDLOAN_ID = '2004-12KHAurRWMFJyxU57S9pQerHsKLCwvWKM1d3dKZVx7gSfkFJ-1';
+
+const PRE_CLAIMED_AMOUNT = '4367295495494540000000000'
 
 let specVersion: SpecVersion;
 export async function handleBlock(block: SubstrateBlock): Promise<void> {
@@ -72,7 +74,7 @@ export async function handleEvmTransaction(idx: string, tx: MoonbeamCall): Promi
         totalClaimed = TotalClaimed.create({
             id: DISTRIBUTION_ADDRESS,
             blockHeight: tx.blockNumber,
-            amount: tx.value.toString(),
+            amount: (BigInt(PRE_CLAIMED_AMOUNT) + BigInt(tx.value.toString())).toString()
         });
     }
     logger.info(`totalClaimed: ${JSON.stringify(totalClaimed)}`);
