@@ -4,7 +4,7 @@ import MoonbeamDatasourcePlugin, { MoonbeamCall } from "@subql/contract-processo
 import { inputToFunctionSighash, isZero, wrapExtrinsics } from "../utils";
 
 const MAIN_REWARDS_ADDRESS = '0x3f5757af3a9fcd2aa09856bbcc9038856af6f8bf';
-const DISTRIBUTION_ADDRESS = '0x51d16189a7cd896f6e4a8b264887d0f6f4d2b0eb';
+const DISTRIBUTION_ADDRESS = '0xe26791213768468b11940aa1e924b615fa486c45';
 
 const MOONBEAM_CROWDLOAN_ID = '2004-12KHAurRWMFJyxU57S9pQerHsKLCwvWKM1d3dKZVx7gSfkFJ-1';
 
