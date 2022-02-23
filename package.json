@@ -19,16 +19,19 @@
   "author": "Parallel Team",
   "license": "Apache-2.0",
   "resolutions": {
-    "@polkadot/api": "6.12.1"
+    "@polkadot/api": "7.8.1",
+    "@polkadot/types": "7.8.1",
+    "@polkadot/keyring": "8.4.1",
+    "@polkadot/util": "8.4.1"
   },
   "dependencies": {
-    "moonbeam-types-bundle": "^2.0.2"
+    "moonbeam-types-bundle": "^2.0.3"
   },
   "devDependencies": {
-    "@polkadot/api": "6.12.1",
+    "@polkadot/api": "7.8.1",
     "@subql/cli": "^0.16.2",
-    "@subql/contract-processors": "0.4.0",
-    "@subql/types": "^0.12.0",
+    "@subql/contract-processors": "^0.5.1",
+    "@subql/types": "^0.14.0",
     "typescript": "^4.4.4"
   }
 }
