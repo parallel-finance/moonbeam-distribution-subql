@@ -7,7 +7,8 @@
     "build": "rm -rf dist && tsc -b",
     "prepack": "rm -rf dist && npm build",
     "test": "jest",
-    "codegen": "subql codegen"
+    "codegen": "./node_modules/.bin/subql codegen",
+    "ipfs:publish": "./node_modules/.bin/subql publish"
   },
   "homepage": "https://github.com/subquery/moonbeam-dictionary",
   "repository": "github:subquery/moonbeam-dictionary",
