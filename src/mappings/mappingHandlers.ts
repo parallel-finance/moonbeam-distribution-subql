@@ -3,8 +3,8 @@ import { SpecVersion, ClaimedTransaction, DistributedTransaction, TotalClaimed }
 import MoonbeamDatasourcePlugin, { MoonbeamCall } from "@subql/contract-processors/dist/moonbeam";
 import { inputToFunctionSighash, isZero, wrapExtrinsics } from "../utils";
 
-const MAIN_REWARDS_ADDRESS = '0x508eb96dc541c8e88a8a3fce4618b5fb9fa3f209';
-const DISTRIBUTION_ADDRESS = '0x1f695652967615cde319fdf59dd65b22c380edc1';
+const MAIN_REWARDS_ADDRESS = '0x99Ae955aB2a012f0a6605C0359049bf33e5152f0';
+const DISTRIBUTION_ADDRESS = '0x323B10Ecf35F287B1dcfe48976cE1078BDA738d0';
 
 const MOONBEAM_CROWDLOAN_ID = '2004-12KHAurRWMFJyxU57S9pQerHsKLCwvWKM1d3dKZVx7gSfkFJ-1';
 
