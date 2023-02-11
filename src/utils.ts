@@ -1,5 +1,5 @@
-import {hexDataSlice, stripZeros} from '@ethersproject/bytes';
-import {EventRecord} from "@polkadot/types/interfaces"
+import { hexDataSlice, stripZeros } from '@ethersproject/bytes';
+import { EventRecord } from "@polkadot/types/interfaces"
 import { SubstrateBlock, SubstrateExtrinsic } from "@subql/types";
 
 export function inputToFunctionSighash(input: string): string {

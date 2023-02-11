@@ -1,6 +1,6 @@
 import { SubstrateBlock } from "@subql/types";
 import { SpecVersion, ClaimedTransaction, DistributedTransaction, TotalClaimed } from "../types";
-import MoonbeamDatasourcePlugin, { MoonbeamCall } from "@subql/contract-processors/dist/moonbeam";
+import MoonbeamDatasourcePlugin, { MoonbeamCall } from "@subql/moonbeam-evm-processor"
 import { inputToFunctionSighash, isZero, wrapExtrinsics } from "../utils";
 
 const MAIN_REWARDS_ADDRESS = '0x508eb96dc541c8e88a8a3fce4618b5fb9fa3f209';
@@ -21,7 +21,18 @@ export async function handleBlock(block: SubstrateBlock): Promise<void> {
         specVersion.blockHeight = block.block.header.number.toBigInt();
         await specVersion.save();
     }
-    const evmCalls: MoonbeamCall[] = await Promise.all(wrapExtrinsics(block).filter(ext => ext.extrinsic.method.section === 'ethereum' && ext.extrinsic.method.method === 'transact').map((ext) => MoonbeamDatasourcePlugin.handlerProcessors['substrate/MoonbeamCall'].transformer(ext, {} as any, undefined, undefined))) as any;
+    const evmCalls: MoonbeamCall[] = await Promise.all(
+        wrapExtrinsics(block)
+            .filter(
+                ext => ext.extrinsic.method.section === 'ethereum'
+                    && ext.extrinsic.method.method === 'transact'
+            ).map(
+                (ext) => MoonbeamDatasourcePlugin.handlerProcessors['substrate/MoonbeamCall'].transformer(
+                    ext as any,
+                    {} as any,
+                    undefined,
+                    undefined,
+                ))) as any;
     for (let idx = 0; idx < evmCalls.length; idx++) {
         await handleEvmTransaction(`${block.block.header.number.toString()}-${idx}`, evmCalls[idx]);
     }
@@ -48,7 +59,7 @@ export async function handleEvmTransaction(idx: string, tx: MoonbeamCall): Promi
         logger.info(`vest transaction: ${JSON.stringify(disTransaction)}`);
         await disTransaction.save();
         return
-    }        
+    }
 
     // Collect the claim transaction
     if (tx.from != MAIN_REWARDS_ADDRESS || tx.to != DISTRIBUTION_ADDRESS) {

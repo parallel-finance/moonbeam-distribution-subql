@@ -11,7 +11,7 @@ type DistributedTransaction @entity {
   to: String! @index
   value: String!
   func: String @index
-  blockHeight: Int! 
+  blockHeight: Int!
   success: Boolean!
 }
 
@@ -23,7 +23,7 @@ type ClaimedTransaction @entity {
   to: String! @index
   value: String!
   func: String @index
-  blockHeight: Int! 
+  blockHeight: Int!
   success: Boolean!
 }
 
