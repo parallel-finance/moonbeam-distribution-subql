@@ -29,6 +29,9 @@ jobs:
       - name: Generate schema type
         run: yarn codegen
 
+      - name: Build from source
+        run: yarn build
+
       - name: Publish to IPFS
         run: yarn ipfs:publish
         env:
