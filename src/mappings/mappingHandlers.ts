@@ -1,97 +1,136 @@
-import { SubstrateBlock } from "@subql/types";
-import { SpecVersion, ClaimedTransaction, DistributedTransaction, TotalClaimed } from "../types";
-import MoonbeamDatasourcePlugin, { MoonbeamCall } from "@subql/moonbeam-evm-processor"
-import { inputToFunctionSighash, isZero, wrapExtrinsics } from "../utils";
+// Follow https://github.com/parallel-finance/acala-distribution-subql/blob/e8514498b5f487199a5d74f80ac8dbc8be374e4f/src/mappings/mappingHandlers.ts
+import { SubstrateEvent } from "@subql/types";
+import { ClaimTx, DistributionTx, TotalClaim, TotalDistribution } from "../types";
+import { BigNumber } from 'ethers'
 
-const MAIN_REWARDS_ADDRESS = '0x508eb96dc541c8e88a8a3fce4618b5fb9fa3f209';
-const DISTRIBUTION_ADDRESS = '0x1f695652967615cde319fdf59dd65b22c380edc1';
+type TransferCallArgs = [string, string, BigNumber] & {
+    from: string;
+    to: string;
+    value: BigNumber;
+};
 
-const MOONBEAM_CROWDLOAN_ID = '2004-12KHAurRWMFJyxU57S9pQerHsKLCwvWKM1d3dKZVx7gSfkFJ-1';
+type Tx = {
+    id: string; // tx hash
+    from: string;
+    to: string;
+    amount: string;
+    blockHeight: number;
+    timestamp: Date;
+};
 
-const PRE_CLAIMED_AMOUNT = '4367295495494540000000000'
+const DISTRIBUTION_ADDRESS = '0x1F695652967615cdE319FDF59dD65B22c380EDC1';
 
-let specVersion: SpecVersion;
-export async function handleBlock(block: SubstrateBlock): Promise<void> {
-    if (!specVersion) {
-        specVersion = await SpecVersion.get(block.specVersion.toString());
-    }
+const isDistributionTx = (from: string) => from === DISTRIBUTION_ADDRESS
 
-    if (!specVersion || specVersion.id !== block.specVersion.toString()) {
-        specVersion = new SpecVersion(block.specVersion.toString());
-        specVersion.blockHeight = block.block.header.number.toBigInt();
-        await specVersion.save();
-    }
-    const evmCalls: MoonbeamCall[] = await Promise.all(
-        wrapExtrinsics(block)
-            .filter(
-                ext => ext.extrinsic.method.section === 'ethereum'
-                    && ext.extrinsic.method.method === 'transact'
-            ).map(
-                (ext) => MoonbeamDatasourcePlugin.handlerProcessors['substrate/MoonbeamCall'].transformer(
-                    ext as any,
-                    {} as any,
-                    undefined,
-                    undefined,
-                ))) as any;
-    for (let idx = 0; idx < evmCalls.length; idx++) {
-        await handleEvmTransaction(`${block.block.header.number.toString()}-${idx}`, evmCalls[idx]);
+const isClaimTx = (to: string) => to === DISTRIBUTION_ADDRESS
+
+async function handleDistribution(tx: Tx): Promise<void> {
+    try {
+        logger.info(`handle distribution call ${tx.blockHeight}-${tx.id}`)
+        let txKey = tx.blockHeight + '-' + tx.id
+        let disTransaction = await DistributionTx.get(txKey);
+        if (disTransaction !== undefined) {
+            logger.warn(`distribution tx [${txKey}] has been recorded`);
+            return;
+        }
+        disTransaction = DistributionTx.create(tx)
+        logger.info(`vest transaction ${disTransaction.from}, amount ${disTransaction.amount}`);
+
+        let totalDistributed = await TotalDistribution.get(tx.from);
+        if (totalDistributed === undefined) {
+            totalDistributed = TotalDistribution.create({
+                id: tx.from,
+                amount: "0",
+                blockHeight: tx.blockHeight,
+                lastUpdated: tx.blockHeight,
+                count: 0,
+            });
+        }
+        totalDistributed.amount = (BigInt(totalDistributed.amount) + BigInt(tx.amount)).toString();
+        totalDistributed.count = totalDistributed.count + 1;
+        totalDistributed.lastUpdated = tx.blockHeight;
+
+        await Promise.all([
+            disTransaction.save(),
+            totalDistributed.save(),
+        ]);
+        return
+    } catch (e) {
+        logger.error(`handle account[${tx.from}] total distribution error: %o`, e);
+        throw e;
     }
 }
 
-export async function handleEvmTransaction(idx: string, tx: MoonbeamCall): Promise<void> {
-    if (!tx.hash || !tx.success) {
-        return;
-    }
-    const func = isZero(tx.data) ? undefined : inputToFunctionSighash(tx.data);
-    // Collect distribute transaction
-    if (tx.from === DISTRIBUTION_ADDRESS) {
-        const disTransaction = DistributedTransaction.create({
-            id: idx,
-            crowdloanId: MOONBEAM_CROWDLOAN_ID,
-            txHash: tx.hash,
-            from: tx.from,
-            to: tx.to,
-            value: tx.value.toString(),
-            func,
-            blockHeight: tx.blockNumber,
-            success: tx.success,
-        });
-        logger.info(`vest transaction: ${JSON.stringify(disTransaction)}`);
-        await disTransaction.save();
+async function handleClaim(tx: Tx): Promise<void> {
+    try {
+        logger.info(`handle claim call ${tx.blockHeight}-${tx.id}`)
+        let txKey = tx.blockHeight + '-' + tx.id
+        let claimTransaction = await ClaimTx.get(txKey);
+        if (claimTransaction !== undefined) {
+            logger.warn(`claim tx [${txKey}] has been recorded`);
+            return;
+        }
+        claimTransaction = ClaimTx.create(tx)
+        logger.info(`claim transaction ${tx.to}, amount ${claimTransaction.amount}`);
+        let totalClaimed = await TotalClaim.get(tx.to);
+        if (totalClaimed === undefined) {
+            totalClaimed = TotalClaim.create({
+                id: tx.to,
+                amount: tx.amount,
+                blockHeight: tx.blockHeight,
+                lastUpdated: tx.blockHeight,
+                count: 0,
+            });
+        }
+        totalClaimed.amount = (BigInt(totalClaimed.amount) + BigInt(tx.amount)).toString();
+        totalClaimed.count = totalClaimed.count + 1;
+        totalClaimed.lastUpdated = tx.blockHeight;
+
+        await Promise.all([
+            claimTransaction.save(),
+            totalClaimed.save(),
+        ]);
         return
+    } catch (e) {
+        logger.error(`handle account[${tx.to}] total claim error: %o`, e);
+        throw e;
     }
+}
 
-    // Collect the claim transaction
-    if (tx.from != MAIN_REWARDS_ADDRESS || tx.to != DISTRIBUTION_ADDRESS) {
-        return;
-    }
-    const claimedTransaction = ClaimedTransaction.create({
-        id: idx,
-        crowdloanId: MOONBEAM_CROWDLOAN_ID,
-        txHash: tx.hash,
-        from: tx.from,
-        to: tx.to,
-        value: tx.value.toString(),
-        func,
-        blockHeight: tx.blockNumber,
-        success: tx.success,
-    });
-    logger.info(`claim transaction: ${JSON.stringify(claimedTransaction)}`);
-    let totalClaimed = await TotalClaimed.get(DISTRIBUTION_ADDRESS);
-    if (totalClaimed) {
-        totalClaimed.blockHeight = tx.blockNumber;
-        totalClaimed.amount = (BigInt(totalClaimed.amount) + BigInt(tx.value.toString())).toString();
-    } else {
-        totalClaimed = TotalClaimed.create({
-            id: DISTRIBUTION_ADDRESS,
-            blockHeight: tx.blockNumber,
-            amount: (BigInt(PRE_CLAIMED_AMOUNT) + BigInt(tx.value.toString())).toString()
-        });
-    }
-    logger.info(`totalClaimed: ${JSON.stringify(totalClaimed)}`);
+export async function handleTransferEvent(event: SubstrateEvent): Promise<void> {
+    try {
+        const {
+            event: {
+                data: [signer, dest, value]
+            },
+        } = event;
+        const from = signer.toString()
+        const to = dest.toString()
+        const isDistribution = isDistributionTx(from);
+        const isClaim = isClaimTx(to);
 
-    await Promise.all([
-        claimedTransaction.save(),
-        totalClaimed.save(),
-    ]);
+        if (!isDistribution && !isClaim) return
+
+        const idx = event.idx;
+        const blockNumber = event.block.block.header.number.toNumber();
+        const txHash = event.extrinsic.extrinsic.hash.toString()
+        const amount = value.toString()
+
+        const tx: Tx = {
+            id: `${txHash}-${idx}`,
+            from,
+            to,
+            amount,
+            blockHeight: blockNumber,
+            timestamp: event.block.timestamp,
+        };
+        if (isDistribution) {
+            await handleDistribution(tx);
+        } else if (isClaim) {
+            await handleClaim(tx);
+        }
+    } catch (e) {
+        logger.error(`handle transfer event error: %o`, e);
+        throw e;
+    }
 }

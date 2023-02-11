@@ -22,28 +22,27 @@
   "author": "Parallel Team",
   "license": "Apache-2.0",
   "resolutions": {
-    "@polkadot/api": "^9",
-    "@polkadot/types": "^9",
-    "@polkadot/keyring": "^9.0.1",
-    "@polkadot/util": "^9.0.1"
+    "ipfs-unixfs": "6.0.6"
   },
   "dependencies": {
     "@ethersproject/bytes": "^5.7.0",
     "@polkadot/api-augment": "^9.13.4",
     "@polkadot/types": "^9",
     "@polkadot/util-crypto": "^10.3.1",
-    "@subql/moonbeam-evm-processor": "0.1.2",
+    "ethers": "^5.7.2",
     "moonbeam-types-bundle": "^2.0.7"
   },
   "devDependencies": {
     "@polkadot/api": "^9",
     "@subql/cli": "1.11.0",
+    "@subql/frontier-evm-processor": "0.1.2",
     "@subql/types": "1.7.1",
     "@terra-money/terra.js": "^3.0.8",
     "tslib": "^2.5.0",
     "typescript": "4.3.2"
   },
   "exports": {
+    "frontierEvm": "./node_modules/@subql/frontier-evm-processor/dist/index.js",
     "chaintypes": "src/chaintypes.ts"
   }
 }

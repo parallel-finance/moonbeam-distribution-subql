@@ -1,42 +1,28 @@
-import { hexDataSlice, stripZeros } from '@ethersproject/bytes';
-import { EventRecord } from "@polkadot/types/interfaces"
-import { SubstrateBlock, SubstrateExtrinsic } from "@subql/types";
+import { encodeAddress } from '@polkadot/util-crypto';
 
-export function inputToFunctionSighash(input: string): string {
-    return hexDataSlice(input, 0, 4);
+export const anyChainSs58Prefix = 42
+
+export function convertToSS58(text: string, prefix: number, isShort = false): string {
+    if (!text) return '';
+
+    try {
+        let address = encodeAddress(text, prefix);
+        const length = 8;
+
+        if (isShort) {
+            address = address.substring(0, length) + '...' + address.substring(address.length - length, length);
+        }
+
+        return address;
+    } catch (error) {
+        return '';
+    }
 }
 
-export function isZero(input: string): boolean {
-    return stripZeros(input).length === 0;
+export function useAnyChainAddress(address: string, isShort = false): string {
+    return convertToSS58(address, anyChainSs58Prefix, isShort);
 }
 
-function filterExtrinsicEvents(
-    extrinsicIdx: number,
-    events: EventRecord[],
-): EventRecord[] {
-    return events.filter(
-        ({ phase }) =>
-            phase.isApplyExtrinsic && phase.asApplyExtrinsic.eqn(extrinsicIdx),
-    );
-}
-
-export function wrapExtrinsics(
-    wrappedBlock: SubstrateBlock,
-): SubstrateExtrinsic[] {
-    return wrappedBlock.block.extrinsics.map((extrinsic, idx) => {
-        const events = filterExtrinsicEvents(idx, wrappedBlock.events);
-        return {
-            idx,
-            extrinsic,
-            block: wrappedBlock,
-            events,
-            success: getExtrinsicSuccess(events),
-        };
-    });
-}
-
-function getExtrinsicSuccess(events: EventRecord[]): boolean {
-    return (
-        events.findIndex((evt) => evt.event.method === 'ExtrinsicSuccess') > -1
-    );
+export function sameAddress(a: string, b: string): boolean {
+    return useAnyChainAddress(a) === useAnyChainAddress(b);
 }

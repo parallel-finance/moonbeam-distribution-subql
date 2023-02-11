@@ -1,34 +1,35 @@
-type SpecVersion @entity {
-  id: ID! #specVersion
-  blockHeight: BigInt!
-}
-
-type DistributedTransaction @entity {
-  id: ID!
-  crowdloanId: String!
-  txHash: String! @index
+type DistributionTx @entity {
+  id: ID! # extrinsic hash
   from: String! @index
   to: String! @index
-  value: String!
-  func: String @index
-  blockHeight: Int!
-  success: Boolean!
-}
-
-type ClaimedTransaction @entity {
-  id: ID!
-  crowdloanId: String!
-  txHash: String! @index
-  from: String! @index
-  to: String! @index
-  value: String!
-  func: String @index
-  blockHeight: Int!
-  success: Boolean!
-}
-
-type TotalClaimed @entity {
-  id: ID!
-  blockHeight: Int!
   amount: String!
+  blockHeight: Int! @index
+  timestamp: Date!
+}
+
+type ClaimTx @entity {
+  id: ID! # extrinsic hash
+  from: String! @index
+  to: String! @index
+  amount: String!
+  blockHeight: Int! @index
+  timestamp: Date!
+}
+
+# record the main account total received from claimers
+type TotalClaim @entity {
+  id: ID! # distribution account address
+  amount: String!
+  blockHeight: Int! @index
+  count: Int!
+  lastUpdated: Int!
+}
+
+# record the main account total received from claimers
+type TotalDistribution @entity {
+  id: ID! # distribution account address
+  amount: String!
+  blockHeight: Int! @index
+  lastUpdated: Int!
+  count: Int!
 }
