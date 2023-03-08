@@ -1,13 +1,6 @@
 // Follow https://github.com/parallel-finance/acala-distribution-subql/blob/e8514498b5f487199a5d74f80ac8dbc8be374e4f/src/mappings/mappingHandlers.ts
 import { SubstrateEvent } from "@subql/types";
 import { ClaimTx, DistributionTx, TotalClaim, TotalDistribution } from "../types";
-import { BigNumber } from 'ethers'
-
-type TransferCallArgs = [string, string, BigNumber] & {
-    from: string;
-    to: string;
-    value: BigNumber;
-};
 
 type Tx = {
     id: string; // tx hash
@@ -18,7 +11,7 @@ type Tx = {
     timestamp: Date;
 };
 
-const DISTRIBUTION_ADDRESS = '0x1F695652967615cdE319FDF59dD65B22c380EDC1';
+const DISTRIBUTION_ADDRESS = '253yWsbUYxYqDXX7Ug8WzDeWtTNgFEsrz5xhgHAFnggJj4Pm';
 
 const isDistributionTx = (from: string) => from === DISTRIBUTION_ADDRESS
 
