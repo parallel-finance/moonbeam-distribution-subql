@@ -1,5 +1,5 @@
 specVersion: 1.0.0
-name: moonbeam-distribution-subql
+name: acala-distribution-subql
 version: 1.0.0
 runner:
   node:
@@ -8,20 +8,19 @@ runner:
   query:
     name: "@subql/query"
     version: "*"
-description: subquery diction for moonbase-alpha and ...
-repository: https://github.com/rjman-ljm/parallel-moonbeam-distribution-subql
+description: parallel acala reward transfer service
+repository: https://github.com/parallel-finance/moonbeam-distribution-subql
 schema:
   file: ./schema.graphql
 network:
-  chainId: "0xfe58ea77779b7abda7da4ec526d14db9b1e9cd40a217c34892af80a9b332b76d"
-  endpoint: "wss://moonbeam.api.onfinality.io/public-ws"
-  dictionary: "https://api.subquery.network/sq/subquery/moonbeam-dictionary"
+  chainId: "0xfc41b9bd8ef8fe53d58c7ea67c794c7ec9a73daf05e6d54b14ff6342c99ba64c"
+  endpoint: "wss://acala.polkawallet.io"
+  dictionary: "https://api.subquery.network/sq/subquery/acala-dictionary"
   chaintypes:
     file: ./dist/chaintypes.js
 dataSources:
   - kind: substrate/Runtime
-    # startBlock: 208196
-    startBlock: 1081261
+    startBlock: 1954922
     mapping:
       file: ./dist/index.js
       handlers:
